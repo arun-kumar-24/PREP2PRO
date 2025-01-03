@@ -154,6 +154,7 @@ Suggested Change: Provide examples from the given resume text if suggesting chan
 Skills:
 - Python, JavaScript, React
 
+Just dont give response in headings or conversation just respond in sentences thats it.
 Conclusion: Finally, based on the review of the provided resume text and job description, suggest any necessary changes to improve 
 the resume and ensure it aligns well with the job description. Always base your suggestions and examples on the provided resume text,
  and provide clear and actionable feedback.'''
@@ -185,14 +186,15 @@ def evaluate_resume(resume_text, job_description):
     # Layout score
     layout_score = layout_check(resume_text)
     
-    total_ats_score = (keyword_score * 50) + grammar_score_percentage + layout_score
+    total_ats_score = str((keyword_score * 50) + grammar_score_percentage + layout_score)
+
 
     suggestions = improvement_suggestions_gemini(job_description, resume_text)
     
     response = {
-        "ats-score" : {total_ats_score},
+        "ats-score" : total_ats_score,
         "ats-score-breakdown" : {
-            "keyword-score" : keyword_score,
+            "keyword-score" : str(keyword_score),
             "grammar-score" : grammar_score_percentage,
             "layout-score" : layout_score
         },
