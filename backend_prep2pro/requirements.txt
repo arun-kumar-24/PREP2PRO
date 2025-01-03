@@ -1,4 +1,9 @@
-flask
+Flask
 PyPDF2
 Werkzeug
 Flask-Caching
+sentence_transformers
+language_tool_python
+google.generativeai
+scikit-learn
+python-dotenv
