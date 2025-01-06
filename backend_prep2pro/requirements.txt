@@ -7,3 +7,12 @@ language_tool_python
 google.generativeai
 scikit-learn
 python-dotenv
+supabase
+redis
+langchain_google_genai
+pandas
+langchain_core
+numpy
+io
+faiss-cpu
+random

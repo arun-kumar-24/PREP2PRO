@@ -1,0 +1,54 @@
+# Virtual environment
+venv/
+
+# Environment variables file
+.env
+
+# Python bytecode
+*.pyc
+*.pyo
+__pycache__/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# Log files
+*.log
+*.out
+*.err
+
+# Database and SQLite files
+*.sqlite3
+*.db
+
+# Django stuff
+*.sqlite3
+db.sqlite3
+/media/
+staticfiles/
+
+# Python test coverage reports
+htmlcov/
+.coverage
+.tox/
+nosetests.xml
+coverage.xml
+
+# Python package files
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+backend_prep2pro\gcpserviceacckey.json
+# Miscellaneous
+.DS_Store
+*.bak
+*.swp
+*.tmp
