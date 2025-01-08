@@ -2,7 +2,7 @@ import redis # type: ignore
 
 # Replace 'internal-redis-url' and 'port' with actual details
 redis_client = redis.StrictRedis(
-    host='internal-redis-url',
+    host='redis://red-ctv3fpogph6c73eqsmfg:6379',
     port=6379,  # Default Redis port
     db=0,       # Default database
     decode_responses=True  # To get string responses instead of bytes
