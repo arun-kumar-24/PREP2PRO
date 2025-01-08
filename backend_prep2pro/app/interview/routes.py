@@ -12,6 +12,7 @@ from langchain_core.documents import Document  # type: ignore
 from langchain_community.vectorstores import FAISS # type: ignore
 import io
 from datetime import datetime
+from google.oauth2 import service_account # type: ignore
 
 interview_bp = Blueprint('interview', __name__)
 
@@ -146,12 +147,62 @@ def next_question():
     print("rag file retrie")
     print((datetime.now() - datetime.fromisoformat(st)).total_seconds() / 60)
 
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"D://Hackathons//CODERED'25//PREP2PRO//backend_prep2pro//gcpserviceacckey.json"
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+    # Load environment variables from .env
+    load_dotenv()
+
+    # Initialize embeddings to None
+    embeddings = None
+
+    # Fetch the JSON string from the environment variable
+    credentials_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+
+    if credentials_json:
+        # Parse the JSON string into a dictionary
+        credentials_dict = json.loads(credentials_json)
+        
+        # Use the dictionary to create credentials
+        credentials = service_account.Credentials.from_service_account_info(credentials_dict)
+
+        # Initialize the Google Cloud client with the credentials
+        embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", credentials=credentials)
+    else:
+        raise Exception("Service account credentials not found in environment variables")
+
     df = pd.read_csv(best_practices_file)
+
+    # Combine the 'Answer' and 'Follow-Up Question' columns
     texts = df[['Answer', 'Follow-Up Question']].agg(' '.join, axis=1).tolist()
+
+    # Create documents from the combined texts
     documents = [Document(page_content=text) for text in texts]
+
+    # Create the FAISS index from the documents and embeddings
     db = FAISS.from_documents(documents, embeddings)
+#     load_dotenv()
+
+#     embeddings = None
+# # Fetch the JSON string from the environment variable
+#     credentials_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+
+#     if credentials_json:
+#         # Parse the JSON string into a dictionary
+#         credentials_dict = json.loads(credentials_json)
+        
+#         # Use the dictionary to create credentials
+#         credentials = service_account.Credentials.from_service_account_info(credentials_dict)
+
+#         # Set the credentials as the default credentials
+#         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_json  # Optional, for other clients
+        
+#         # Initialize the Google Cloud client with the credentials
+#         embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", credentials=credentials)
+
+#     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"D://Hackathons//CODERED'25//PREP2PRO//backend_prep2pro//gcpserviceacckey.json"
+#     embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+#     df = pd.read_csv(best_practices_file)
+#     texts = df[['Answer', 'Follow-Up Question']].agg(' '.join, axis=1).tolist()
+#     documents = [Document(page_content=text) for text in texts]
+#     db = FAISS.from_documents(documents, embeddings)
 
     def retrieve_info(query):
         similar_response = db.similarity_search(query, k=3)
@@ -159,6 +210,7 @@ def next_question():
         return page_contents_array
 
     best_practice = retrieve_info(user_answer)
+    print(best_practice)
     print("best practice")
     print((datetime.now() - datetime.fromisoformat(st)).total_seconds() / 60)
     # Load GEMINI_KEY from environment variables
