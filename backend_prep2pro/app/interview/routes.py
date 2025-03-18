@@ -13,6 +13,7 @@ from langchain_community.vectorstores import FAISS # type: ignore
 import io
 from datetime import datetime
 from google.oauth2 import service_account # type: ignore
+from ollama import chat # type: ignore
 
 interview_bp = Blueprint('interview', __name__)
 
@@ -133,7 +134,7 @@ def next_question():
     # Generate a prompt for Gemini API
     interview_info = session_data["rules"]
     chat_history = session_data["chat_history"]
-    resume_text = session_data["resume"]
+    emotion_state = session_data["resume"]
     if "problems" in session_data:
         problems = session_data["problems"]
     else:
@@ -153,20 +154,35 @@ def next_question():
     # Initialize embeddings to None
     embeddings = None
 
-    # Fetch the JSON string from the environment variable
-    credentials_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+    # # Fetch the JSON string from the environment variable
+    # credentials_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
 
-    if credentials_json:
-        # Parse the JSON string into a dictionary
-        credentials_dict = json.loads(credentials_json)
+    # if credentials_json:
+    #     # Parse the JSON string into a dictionary
+    #     credentials_dict = json.loads(credentials_json)
         
-        # Use the dictionary to create credentials
+    #     # Use the dictionary to create credentials
+    #     credentials = service_account.Credentials.from_service_account_info(credentials_dict)
+
+    #     # Initialize the Google Cloud client with the credentials
+    #     embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", credentials=credentials)
+    # else:
+    #     raise Exception("Service account credentials not found in environment variables")
+
+    key_path = os.path.join(os.path.dirname(__file__), '../../gcpserviceacckey.json')
+
+    if os.path.exists(key_path):
+        # Load the key file
+        with open(key_path, 'r') as file:
+            credentials_dict = json.load(file)
+        
+        # Create credentials from the key
         credentials = service_account.Credentials.from_service_account_info(credentials_dict)
 
-        # Initialize the Google Cloud client with the credentials
+        # Initialize the embeddings client
         embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", credentials=credentials)
     else:
-        raise Exception("Service account credentials not found in environment variables")
+        raise Exception(f"Service account key file not found at {key_path}")
 
     df = pd.read_csv(best_practices_file)
 
@@ -203,7 +219,7 @@ def next_question():
 #     texts = df[['Answer', 'Follow-Up Question']].agg(' '.join, axis=1).tolist()
 #     documents = [Document(page_content=text) for text in texts]
 #     db = FAISS.from_documents(documents, embeddings)
-
+    
     def retrieve_info(query):
         similar_response = db.similarity_search(query, k=3)
         page_contents_array = [doc.page_content for doc in similar_response]
@@ -228,8 +244,8 @@ def next_question():
     Ensure questions align with the formal style provided, keeping them concise yet detailed where necessary.
     Chat History of the Interview So Far: {chat_history}
     This is the user's answer to your previous question : {user_answer}
-    This is the user' resume :{resume_text}
     Current duration of the interview : {elapsed_time}
+    User's emotion state : {emotion_state}
     If the user's response is a self-introduction and some clarification can be asked in that, feel free to ask that too but don't ask unnecessary questions.
     Pay particular attention to the user's answer to the last question when framing the follow-up.
 
